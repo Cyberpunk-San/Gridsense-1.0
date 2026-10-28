@@ -1,333 +1,284 @@
 # GridSense — Smart Energy Microgrid Forecasting & Control
 
-GridSense is a smart microgrid intelligence platform that combines weather-aware demand forecasting, battery dispatch control, and a production-ready dashboard for operational decision-making. The application ingests hourly telemetry, cleans the input payload, constructs a fixed predictive feature vector, calls a QuickML regression endpoint, and translates the predicted demand into actionable power-source decisions.
+**Forecast the load. Direct the energy.**
 
-The system is designed to be more than a forecast demo: it turns a prediction into a microgrid policy decision by deciding whether the system should prioritize renewable storage, main-grid supply, or overload protection based on the forecasted load and time-of-day conditions.
+GridSense is a microgrid forecasting and control application that predicts hourly electricity demand, converts forecasts into grid and storage decisions, simulates battery and solar dispatch, and presents the results in a web dashboard.
 
-## Live deployment
+Unlike a standalone forecasting demo, GridSense connects demand prediction to an explicit control layer that determines how the microgrid should respond to changing demand.
 
-- Public app: https://gridsense-50047192240.development.catalystappsail.in/
-- Health endpoint: https://gridsense-50047192240.development.catalystappsail.in/api/health
+## Live Demo
 
-## Project tagline
+- **Application:** https://gridsense-50047192240.development.catalystappsail.in/
+- **Health Check:** https://gridsense-50047192240.development.catalystappsail.in/api/health
 
-A smarter grid begins with a better forecast — and a better forecast becomes a safer, greener, more resilient microgrid.
+Open the application and use the available demo or sample forecast flow to explore the predicted load, operating mode, battery state of charge, and overload status.
 
-## Why this project matters
+## Features
 
-Modern energy systems require rapid, data-driven control decisions because weather variability, peak-hour demand, and renewable intermittency can create instability. GridSense addresses that by combining:
+- **24-hour demand forecasting:** Predicts hourly electricity demand using a QuickML regression endpoint.
+- **Flexible data ingestion:** Accepts telemetry through manual input and CSV uploads.
+- **Data validation:** Validates timestamps and numeric inputs before processing.
+- **Feature engineering:** Constructs the fixed feature vector required by the forecasting model.
+- **Intelligent dispatch:** Selects renewable-storage or main-grid mode based on predicted demand and time of day.
+- **Overload detection:** Raises a critical-overload alert when predicted demand reaches the configured threshold.
+- **Battery simulation:** Models battery state of charge and solar contribution.
+- **Interactive dashboard:** Displays demand forecasts and operational decisions.
+- **Run history:** Stores forecast runs and logs for subsequent review.
 
-- accurate demand forecasting,
-- logic-driven switching between grid and storage,
-- battery state-of-charge simulation,
-- clear human-readable dashboard insight, and
-- a deployment-ready web application on Catalyst.
+## How It Works
 
-This is especially relevant for intelligent microgrids, community energy systems, and renewable-heavy energy environments where forecast-driven control can reduce peak strain, maintain stability, and improve utilization of local energy assets.
-
-## App overview
-
-![GridSense dashboard concept](./reference_design.png)
-
-![GridSense energy sculpture visual](./app/static/energy-sculpture.png)
-
-## Problem solved
-
-The challenge is to convert raw weather and demand data into a forecast and then act on that forecast in a decision-making system. GridSense solves this by creating a complete energy intelligence loop:
-
-1. Load telemetry and weather inputs
-2. Validate and clean the dataset
-3. Build the exact feature vector required by the model
-4. Run prediction through QuickML
-5. Apply controller logic to choose the active mode
-6. Simulate battery and solar dispatch
-7. Display results and operational logs in a dashboard
-
-## What the system does
-
-- Accepts hourly telemetry or uploaded CSV files
-- Validates timestamps and numeric data quality
-- Engineers the exact fixed feature set used in the forecast pipeline
-- Calls the published QuickML model endpoint for hourly demand prediction
-- Interprets forecasted demand into operational states
-- Applies grid/storage dispatch rules and overload handling
-- Simulates battery state of charge and renewable contribution
-- Stores run history, logs, and decision evidence for review
-
-## Key feature contract
-
-The model uses a fixed feature contract for consistent training and inference.
-
-### Input features
-
-- ambient_temp_c
-- humidity_pct
-- solar_irradiance_wm2
-- hour
-- dow
-- is_weekend
-- hour_sin
-- hour_cos
-- is_peak_window
-- cdd
-- hdd
-- temp_x_hum
-
-### Target variable
-
-- target_demand_kw
-
-### Important rules
-
-- `target_demand_kw` is the supervised target, not an input feature.
-- The feature order is fixed and must be kept consistent across training and inference.
-- For gradient-boosted tree models like LightGBM, normalization is not required.
-- The prediction response is read from the first value in the `result` array.
-
-## QuickML contract
-
-Example valid request payload:
-
-```json
-{
-  "data": {
-    "ambient_temp_c": 26.84,
-    "humidity_pct": 57.79,
-    "solar_irradiance_wm2": 466,
-    "hour": 10,
-    "dow": 1,
-    "is_weekend": 0,
-    "hour_sin": 0.5,
-    "hour_cos": -0.8660254038,
-    "is_peak_window": 0,
-    "cdd": 4.84,
-    "hdd": 0,
-    "temp_x_hum": 15.510836
-  }
-}
+```text
+Telemetry / CSV Upload
+          |
+          v
+Input Validation and Cleaning
+          |
+          v
+Feature Engineering
+          |
+          v
+QuickML Demand Prediction
+          |
+          v
+Controller Decision Engine
+          |
+          v
+Battery and Solar Simulation
+          |
+          v
+Dashboard, Logs, and Run History
 ```
 
-Example valid model response:
+The Flask backend coordinates data processing, model inference, controller decisions, battery simulation, and persistence. The frontend presents the resulting forecast and operating state.
 
-```json
-{
-  "result": [167.180451578077]
-}
-```
+## Controller Logic
 
-This indicates a predicted demand of approximately 167.18 kW for that forecast row.
-
-## Model quality and benchmarking
-
-The forecasting pipeline was evaluated using time-aware validation instead of random splitting, so the benchmark reflects realistic chronological performance.
-
-### Verified local forecasting metrics
-
-- MAE: 7.1238
-- MSE: 81.3541
-- RMSE: 9.0197
-- RMSLE: 0.0663
-- R²: 0.9671
-- MAPE: 5.0864
-
-These metrics indicate a strong forecasting model with high explanatory power and low error. MAPE can be noisy when demand values are near zero, so it should be interpreted alongside RMSE, MAE, and R² rather than in isolation.
-
-## Controller logic
-
-The control engine converts the predicted demand into a dispatch policy.
+GridSense applies explicit threshold- and time-based rules to determine the operating mode.
 
 | Condition | Decision |
 |---|---|
-| Predicted demand > 160 kW | Renewable storage mode |
-| Timestamp hour is 18:00 to 22:00 inclusive | Renewable storage mode |
-| Predicted demand >= 200 kW | Critical overload state |
-| Otherwise | Main-grid mode |
+| Predicted demand > 160 kW | Renewable Storage mode |
+| Hour is between 18:00 and 22:00, inclusive | Renewable Storage mode |
+| Predicted demand ≥ 200 kW | Critical Overload alert |
+| Otherwise | Main Grid mode |
 
-This logic is implemented in a transparent, testable decision layer so the dashboard and the underlying dispatch rule remain aligned.
+The critical-overload condition is evaluated independently of the selected dispatch mode.
+
+These rules are designed to be transparent and testable, with the same thresholds used by the controller and dashboard.
+
+## Forecasting and Model Evaluation
+
+The following validation metrics are reported by the project:
+
+| Metric | Value |
+|---|---:|
+| MAE | 7.1238 |
+| MSE | 81.3541 |
+| RMSE | 9.0197 kW |
+| RMSLE | 0.0663 |
+| R² | 0.9671 |
+| MAPE | 5.0864% |
+
+These values represent validation performance and should not be interpreted as guaranteed results on unseen evaluation data.
+
+MAPE can be sensitive to actual demand values near zero. It should therefore be considered alongside MAE, RMSE, and R².
+
+## Model Input Contract
+
+The forecasting pipeline uses a fixed set of 12 input features. The feature order must remain consistent during training and inference.
+
+| No. | Feature | Description |
+|---:|---|---|
+| 1 | `ambient_temp_c` | Ambient temperature in Celsius |
+| 2 | `humidity_pct` | Relative humidity |
+| 3 | `solar_irradiance_wm2` | Solar irradiance |
+| 4 | `hour` | Hour of the day |
+| 5 | `dow` | Day of the week |
+| 6 | `is_weekend` | Weekend indicator |
+| 7 | `hour_sin` | Sine encoding of the hour |
+| 8 | `hour_cos` | Cosine encoding of the hour |
+| 9 | `is_peak_window` | Peak-period indicator |
+| 10 | `cdd` | Cooling degree days |
+| 11 | `hdd` | Heating degree days |
+| 12 | `temp_x_hum` | Temperature-humidity interaction feature |
+
+**Target variable:** `target_demand_kw`
+
+The target represents the demand value being predicted. It must not be included among the input features.
+
+The QuickML response is read from the first value in its `result` array.
 
 ## Architecture
 
-### End-to-end flow
+### System Components
 
-```text
-User / Browser / CSV Upload
-           │
-           ▼
-Flask App (AppSail)
-           │
-           ├── Input validation
-           ├── Feature engineering
-           ├── QuickML prediction request
-           ├── Controller decision engine
-           ├── Battery + solar simulation
-           └── Logs / history / dashboard response
-```
+| Component | Responsibility |
+|---|---|
+| Frontend dashboard | Displays forecasts and operating decisions |
+| Python and Flask backend | Handles API requests and coordinates processing |
+| Input pipeline | Parses and validates telemetry |
+| Feature engineering | Constructs the model input vector |
+| Zoho Catalyst QuickML | Provides demand prediction |
+| Controller engine | Determines dispatch mode and overload status |
+| Battery simulator | Simulates battery, solar, and grid contribution |
+| Persistence layer | Manages run history and logs |
+| Zoho Catalyst AppSail | Hosts the backend application |
 
-### System components
-
-- Frontend UI: Flask static dashboard with Chart.js
-- API backend: Python + Flask
-- Forecast engine: QuickML regression inference
-- Controller logic: rule-based microgrid dispatch engine
-- Persistence: safe logging and run history storage
-- Runtime: Zoho Catalyst AppSail
-
-## Repository structure
-
-- `app/app.py` — main Flask backend and route orchestration
-- `app/quickml_client.py` — QuickML request and response handling
-- `app/controller.py` — controller dispatch logic
-- `app/battery.py` — solar, battery, and grid dispatch simulation
-- `app/ingest.py` — data parsing and feature engineering
-- `app/persist.py` — runs, logs, and history management
-- `app/static/` — frontend dashboard assets
-- `ml_lab/` — experimental model selection and validation
-- `data/` — demo and training telemetry datasets
-- `tests/` — automated coverage for API, model, and controller behavior
-- `reference_design.png` — architecture and concept visual
-
-## Tech stack
+### Technology Stack
 
 - Python 3
 - Flask
 - Pandas
 - NumPy
 - scikit-learn
-- QuickML / Catalyst integration
-- Chart.js for dashboard visuals
-- Zoho Catalyst AppSail deployment model
+- Zoho Catalyst QuickML
+- Zoho Catalyst AppSail
+- Chart.js
 
-## App features
+## Repository Structure
 
-- Microgrid demand forecasting dashboard
-- Hour-by-hour demand forecast display
-- Renewable-storage and main-grid mode switching
-- Overload detection and alerts
-- Battery state-of-charge simulation
-- CSV upload and manual forecast input
-- Historical run tracking and logs
-- Real-time dashboard explanation and operational summary
+```text
+GridSense/
+├── app/
+│   ├── app.py              # Flask routes and application orchestration
+│   ├── quickml_client.py   # QuickML request and response handling
+│   ├── controller.py       # Dispatch and overload rules
+│   ├── battery.py          # Battery and solar simulation
+│   ├── ingest.py           # Input parsing and feature engineering
+│   ├── persist.py          # Run history and logs
+│   └── static/             # Dashboard assets
+├── ml_lab/                  # Model selection and validation
+├── data/                    # Demo and training telemetry
+├── tests/                   # Automated tests
+└── reference_design.png     # Project visual/reference
+```
 
-## Screenshots and visuals
+## Getting Started
 
-### Dashboard overview
+### Prerequisites
 
-![GridSense dashboard overview](./reference_design.png)
+- Python 3
+- pip
+- Git
+- QuickML and Catalyst configuration for live model inference
 
-### Energy concept visual
+### 1. Clone the Repository
 
-![Energy sculpture concept](./app/static/energy-sculpture.png)
+```bash
+git clone <repository-url>
+cd GridSense
+```
 
-### Additional project visual asset
+Replace `<repository-url>` with the URL of your repository.
 
-![GridSense side visual](./app/static/sidebar_card_crop.png)
-
-## Local setup
-
-### 1. Create environment
+### 2. Create a Virtual Environment
 
 ```bash
 python -m venv .venv
 ```
 
-### 2. Activate environment
+### 3. Activate the Environment
 
-Windows:
+**Windows**
 
 ```bash
 .venv\Scripts\activate
 ```
 
-macOS/Linux:
+**macOS/Linux**
 
 ```bash
 source .venv/bin/activate
 ```
 
-### 3. Install dependencies
+### 4. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Run the application
+### 5. Configure Environment Variables
+
+Set the required environment variables before running the application.
+
+```env
+QUICKML_ENDPOINT_URL=
+QUICKML_ENDPOINT_KEY=
+ZOHO_CLIENT_ID=
+ZOHO_CLIENT_SECRET=
+ZOHO_REFRESH_TOKEN=
+```
+
+Optional variables:
+
+```env
+QUICKML_ORG_ID=
+X_ZOHO_CATALYST_ORG_ID=
+PREDICT_PROXY_KEY=
+```
+
+Use your own credentials in the environment. **Never commit API keys, OAuth tokens, or client secrets to GitHub.**
+
+### 6. Run the Application
 
 ```bash
 python app/app.py
 ```
 
-### 5. Access the app
-
-Open the app in a browser at:
+Open the following URL in your browser:
 
 ```text
 http://localhost:9000/
 ```
 
-## Catalyst deployment configuration
+## Deployment
 
-The project is designed to run on Zoho Catalyst AppSail and expects a few runtime environment variables.
+GridSense is designed for deployment using Zoho Catalyst AppSail, with QuickML providing model inference.
 
-### Required configuration
+The deployed application exposes a health endpoint for checking service availability:
 
-- `QUICKML_ENDPOINT_URL`
-- `QUICKML_ENDPOINT_KEY`
-- `ZOHO_CLIENT_ID`
-- `ZOHO_CLIENT_SECRET`
-- `ZOHO_REFRESH_TOKEN`
+```text
+/api/health
+```
 
-### Optional configuration
+When QuickML is unavailable or unconfigured, the application may use a deterministic local forecasting fallback. During evaluation, verify which inference path is active and distinguish fallback predictions from live QuickML results.
 
-- `QUICKML_ORG_ID`
-- `X_ZOHO_CATALYST_ORG_ID`
-- `PREDICT_PROXY_KEY`
+## Testing
 
-When the official QuickML endpoint is unavailable, the app gracefully falls back to a deterministic local forecasting path so the dashboard remains usable for demos and local validation.
-
-## Testing and validation
-
-The repository includes automated checks for:
-
-- API behavior
-- persistence and fallback handling
-- model pipeline correctness
-- feature-engineering consistency
-- QuickML payload contract
-- controller decision logic
-- battery simulation logic
-
-### Run tests
+Run the automated test suite:
 
 ```bash
 pytest -q
 ```
 
-### Health validation
+Check the local health endpoint:
 
 ```bash
 curl http://localhost:9000/api/health
 ```
 
-## Final submission narrative
+The documented test coverage includes:
 
-GridSense was created to demonstrate that a smart microgrid can go beyond a static visualization and become an actionable energy management system. It combines forecasting, dispatch logic, battery simulation, and a clean interface into a single real-world workflow.
+- API behaviour
+- Persistence and fallback handling
+- Model pipeline correctness
+- Feature-engineering consistency
+- QuickML payload contract
+- Controller decision logic
+- Battery simulation
 
-The system does not simply show predicted demand; it interprets that prediction to decide how energy should be used. It prioritizes local renewable assets when the forecast suggests strain or peak-hour risk, protects the microgrid during overload periods, and can explain the decision in plain operational terms.
+## Limitations and Evaluation Notes
 
-This makes GridSense a credible, production-inspired solution for next-generation energy monitoring and control, while still remaining simple enough to deploy, demonstrate, and explain clearly in a hackathon context.
+- Validation metrics are not guaranteed hidden-test or competition scores.
+- The local forecasting fallback is distinct from successful live QuickML inference.
+- Battery and renewable dispatch outputs are simulations, not measurements from a physical microgrid.
+- Controller thresholds represent the project's configured policy and should be validated before use in a real energy system.
 
-## Submission checklist
+## Project Information
 
-- [x] Working public Catalyst deployment
-- [x] Forecast pipeline and QuickML integration
-- [x] Feature contract and model input consistency
-- [x] Controller logic with overload detection
-- [x] Battery and renewable dispatch simulation
-- [x] Dashboard UI and operational explanation
-- [x] Logs, history, and run tracking
-- [x] README and architecture documentation
-- [x] Final validation ready for submission
+**Project:** GridSense — Smart Energy Microgrid Forecasting & Control  
+**Team:** `ummm....`  
+**Contact:** sansritimishra2427@gmail.com  
+**Deployment:** Zoho Catalyst
 
-## Final note
-
-This repository is prepared as a final-project submission artifact for GitHub and review. It includes the application, the forecasting logic, the deployed architecture story, the UI experience, validation logic, and the documentation needed to present the project clearly and credibly.
+GridSense demonstrates an end-to-end workflow connecting hourly demand forecasting, transparent dispatch decisions, battery simulation, and dashboard-based monitoring in a single application.

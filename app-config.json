@@ -1,0 +1,11 @@
+{
+  "command": "python app.py",
+  "build_path": "./",
+  "stack": "python_3_10",
+  "env_variables": {},
+  "memory": 512,
+  "scripts": {
+    "preserve": "python -m pip install --no-cache-dir -r ./requirements.txt --target ./",
+    "predeploy": "python -m pip install --no-cache-dir -r ./requirements.txt --target ./"
+  }
+}

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GridSense — Smart Energy Intelligence Dashboard</title>
+    <meta name="description" content="GridSense microgrid energy intelligence dashboard. Forecast demand, manage battery storage, and monitor grid state in real-time.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Atmospheric Background Layers -->
+<div class="atmosphere" aria-hidden="true"></div>
+
+<div class="app-shell">
+
+    <!-- ============================================================
+         SIDEBAR
+         ============================================================ -->
+    <aside class="sidebar" id="sidebar">
+        <!-- Logo -->
+        <a class="sidebar-logo" href="/" id="sidebarLogo">
+            <svg class="logo-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+            <span class="logo-text">GridSense</span>
+        </a>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav" aria-label="Main navigation">
+            <button class="nav-item active" data-page="dashboard" id="navDashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-item" data-page="forecast" id="navForecast">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <span>Forecast</span>
+            </button>
+            <button class="nav-item" data-page="upload" id="navUpload">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Upload Data</span>
+            </button>
+            <button class="nav-item" data-page="controller" id="navSimulation">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                <span>Controller</span>
+            </button>
+            <button class="nav-item" data-page="history" id="navHistory">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>History</span>
+            </button>
+            <button class="nav-item" data-page="about" id="navAbout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span>About</span>
+            </button>
+        </nav>
+
+        <!-- Sidebar Sculpture -->
+        <div class="sidebar-sculpture">
+            <div class="sculpture-card">
+                <img src="energy-sculpture.png" alt="Abstract energy sculpture" loading="lazy">
+                <div class="sculpture-text">
+                    <div class="line1">Smarter Grids.</div>
+                    <div class="line2">Greener</div>
+                    <div class="line3">Tomorrows.</div>
+                </div>
+                <button class="sculpture-arrow" aria-label="Learn more">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ============================================================
+         TOP BAR
+         ============================================================ -->
+    <header class="topbar" role="banner">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="search-bar" id="searchBar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" placeholder="Search data, forecasts…" aria-label="Search" id="globalSearch">
+            <span class="search-shortcut">Ctrl K</span>
+        </div>
+        <div class="topbar-right">
+            <button class="notification-btn" id="notificationBtn" aria-label="Notifications">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span class="notification-dot"></span>
+            </button>
+            <button class="profile-btn" id="profileBtn">
+                <div class="profile-avatar">SM</div>
+                <span class="profile-name">Sansriti Mishra</span>
+                <svg class="profile-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- ============================================================
+         MAIN CONTENT
+         ============================================================ -->
+    <main class="main-content" id="mainContent">
+
+        <!-- Alert Banner -->
+        <div id="alertBanner" class="alert-banner" role="alert" aria-live="assertive" hidden></div>
+
+        <!-- PAGE GUIDE -->
+        <section class="page-guide" id="pageGuide" aria-labelledby="pageGuideTitle">
+            <div class="page-guide-icon" aria-hidden="true">◎</div>
+            <div class="page-guide-copy">
+                <span class="section-eyebrow" id="pageGuideEyebrow">ORIENTATION</span>
+                <h2 id="pageGuideTitle">Grid intelligence at a glance</h2>
+                <p id="pageGuideDescription">This dashboard turns weather telemetry into a 24-hour demand forecast, then explains the controller decision that protects the microgrid.</p>
+            </div>
+            <div class="page-guide-significance">
+                <span>WHY IT MATTERS</span>
+                <strong id="pageGuideSignificance">One view connects prediction, dispatch, battery reserve, and risk.</strong>
+            </div>
+        </section>
+
+        <!-- HERO -->
+        <section class="hero-section" id="heroSection">
+            <div class="hero-greeting">
+                <span class="hero-eyebrow">GRID INTELLIGENCE / LIVE FORECAST</span>
+                <h1 id="greetingText">Good Evening, Sansriti ✨</h1>
+                <p id="forecastHorizonText">Loading hourly microgrid forecast…</p>
+                <div class="hero-peak-callout" aria-label="Next forecast peak">
+                    <span class="hero-peak-label">NEXT-24H PEAK</span>
+                    <strong><span id="heroPeakValue">—</span> <small>kW</small></strong>
+                    <span class="hero-peak-time">expected at <span id="heroPeakTime">—:—</span></span>
+                </div>
+            </div>
+            <div class="hero-cards">
+                <div class="weather-card" id="weatherCard">
+                    <div class="weather-location">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        <span id="weatherSource">Forecast inputs</span>
+                    </div>
+                    <div class="weather-temp">28<sup>°C</sup></div>
+                    <div class="weather-desc" id="weatherDesc">Awaiting forecast</div>
+                    <div class="weather-icon">
+                        <svg viewBox="0 0 24 24" width="34" height="34" fill="#39F5D0" style="filter: drop-shadow(0 0 12px rgba(57, 245, 208, 0.75));">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="date-card" id="dateCard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span id="dateText"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- KPI ROW -->
+        <section class="kpi-row" id="kpiRow" aria-label="Key Performance Indicators">
+            <article class="kpi-card" data-accent="teal" id="kpiDemandCard">
+                <div class="kpi-card-header">
+                    <div class="kpi-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    </div>
+                    <span class="kpi-label">Forecast Energy</span>
+                    <span class="kpi-trend" id="kpiDemandTrend">Hourly forecast</span>
+                </div>
+                <div class="kpi-value" id="kpiDemand">—<span class="kpi-unit">kWh</span></div>
+                <canvas class="kpi-spark" id="sparkDemand"></canvas>
+            </article>
+
+            <article class="kpi-card" data-accent="amber" id="kpiPeakCard">
+                <div class="kpi-card-header">
+                    <div class="kpi-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    </div>
+                    <span class="kpi-label">Peak Demand</span>
+                </div>
+                <div class="kpi-value" id="kpiPeak">—<span class="kpi-unit">kW</span></div>
+                <div class="kpi-sub" id="kpiPeakSub">at —:—</div>
+                <canvas class="kpi-spark" id="sparkPeak"></canvas>
+            </article>
+
+            <article class="kpi-card" data-accent="blue" id="kpiTempCard">
+                <div class="kpi-card-header">
+                    <div class="kpi-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                    </div>
+                    <span class="kpi-label">Avg. Temperature</span>
+                </div>
+                <div class="kpi-value" id="kpiTemp">—<span class="kpi-unit">°C</span></div>
+                <div class="kpi-sub" id="kpiTempSub">Forecast inputs</div>
+                <canvas class="kpi-spark" id="sparkTemp"></canvas>
+            </article>
+
+            <article class="kpi-card" data-accent="coral" id="kpiOverloadCard">
+                <div class="kpi-card-header">
+                    <div class="kpi-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <span class="kpi-label">Overload Hours</span>
+                </div>
+                <div class="kpi-value" id="kpiOverload">—</div>
+                <div class="kpi-sub" id="kpiOverloadSub">Across forecast</div>
+                <canvas class="kpi-spark" id="sparkOverload"></canvas>
+            </article>
+        </section>
+
+        <!-- ANALYTICS ROW -->
+        <section class="analytics-row" aria-label="Analytics">
+            <!-- Demand Chart -->
+            <div class="glass-panel" id="demandChartPanel">
+                <div class="chart-panel-header">
+                    <h2 class="chart-title">Forecast Demand</h2>
+                    <div class="chart-controls">
+                        <select class="chart-select" id="chartTimeRange" aria-label="Time range">
+                            <option value="24">Next 24 Hours</option>
+                        </select>
+                        <button class="chart-expand-btn" id="chartExpand" aria-label="Expand chart">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-legend" id="demandLegend">
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background: #39F5D0;"></span>
+                        <span>Predicted Demand</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line dashed" style="color: #FFB84D;"></span>
+                        <span>Reserve threshold (160 kW)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line dashed" style="color: #FF647C;"></span>
+                        <span>Critical overload (200 kW)</span>
+                    </div>
+                </div>
+                <p class="chart-explanation"><strong>How to read this graph:</strong> The solid line is predicted demand. The amber line marks the reserve threshold where the controller should prepare battery support. The coral line marks critical overload risk.</p>
+                <div class="chart-canvas-wrap">
+                    <canvas id="loadChart" aria-label="Forecast demand chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Grid State Doughnut -->
+            <div class="glass-panel grid-state-panel" id="gridStatePanel">
+                <h2 class="grid-state-title" id="gridStateTitle">Grid State</h2>
+                <div class="doughnut-wrap">
+                    <canvas id="gridDoughnut"></canvas>
+                    <div class="doughnut-center">
+                        <div class="pct" id="gridPct">—%</div>
+                        <div class="lbl">Grid Usage</div>
+                    </div>
+                </div>
+                <div class="grid-state-legend" id="gridStateLegend">
+                    <div class="gs-legend-item">
+                        <div class="gs-legend-left">
+                            <span class="gs-legend-dot" style="background: #39F5D0;"></span>
+                            <span class="gs-legend-label">Grid</span>
+                        </div>
+                        <span class="gs-legend-value" id="gsGrid">— hrs</span>
+                    </div>
+                    <div class="gs-legend-item">
+                        <div class="gs-legend-left">
+                            <span class="gs-legend-dot" style="background: #FFB84D;"></span>
+                            <span class="gs-legend-label">Battery</span>
+                        </div>
+                        <span class="gs-legend-value" id="gsBattery">— hrs</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- OVERLOAD ANALYTICS -->
+        <section class="glass-panel overload-chart-section" id="overloadSection" aria-labelledby="overloadChartTitle">
+            <div class="chart-panel-header">
+                <div>
+                    <span class="section-eyebrow">RISK WINDOW</span>
+                    <h2 class="chart-title" id="overloadChartTitle">Overload Hours</h2>
+                </div>
+                <div class="overload-chart-total" id="overloadChartTotal">— hours flagged</div>
+            </div>
+            <p class="chart-explanation overload-explanation"><strong>How to read this graph:</strong> Each bar represents one forecast hour. Coral bars are hours at or above the 200 kW critical overload threshold; quiet hours remain at zero. Use the highlighted time windows to plan storage or reduce demand.</p>
+            <div class="chart-canvas-wrap overload-chart-wrap">
+                <canvas id="overloadChart" aria-label="Hourly overload risk chart"></canvas>
+            </div>
+        </section>
+
+        <!-- CONTROLLER -->
+        <section class="controller-section" id="controllerSection" aria-labelledby="controllerTitle">
+            <div class="controller-heading">
+                <div>
+                    <span class="section-eyebrow">LIVE CONTROL CENTER</span>
+                    <h2 id="controllerTitle">Energy Controller</h2>
+                    <p>See how the controller balances utility power, stored energy, and solar generation hour by hour.</p>
+                </div>
+                <div class="controller-status-pill" id="controllerStatusPill"><span></span><span id="controllerStatusText">Awaiting forecast</span></div>
+            </div>
+            <div class="controller-grid">
+                <article class="controller-card grid-route">
+                    <div class="controller-card-icon">⌁</div>
+                    <div>
+                        <span class="controller-card-label">PRIMARY ROUTE</span>
+                        <h3>Main grid</h3>
+                        <p>Supplies normal demand when renewable or stored energy is not enough.</p>
+                    </div>
+                    <strong id="controllerGridHours">— hrs</strong>
+                </article>
+                <article class="controller-card battery-route">
+                    <div class="controller-card-icon">▰</div>
+                    <div>
+                        <span class="controller-card-label">PEAK SUPPORT</span>
+                        <h3>Battery storage</h3>
+                        <p>Discharges during high-demand hours to protect the grid from overload.</p>
+                    </div>
+                    <strong id="controllerBatteryHours">— hrs</strong>
+                </article>
+                <article class="controller-card solar-route">
+                    <div class="controller-card-icon">✦</div>
+                    <div>
+                        <span class="controller-card-label">CLEAN INPUT</span>
+                        <h3>Solar / renewable</h3>
+                        <p>Offsets grid demand when sunlight is available in the forecast.</p>
+                    </div>
+                    <strong id="controllerRenewableHours">— hrs</strong>
+                </article>
+            </div>
+            <div class="controller-explanation">
+                <span class="controller-explanation-mark">i</span>
+                <p><strong>How to read this:</strong> The three curves show the actual modeled contribution to demand. Grid is the remaining utility load, Battery is stored-energy discharge, and Solar is direct renewable supply. Their combined height follows the forecast demand.</p>
+            </div>
+            <div class="controller-chart">
+                <div class="controller-chart-header">
+                    <div>
+                        <span class="section-eyebrow">HOURLY ROUTING</span>
+                        <h3>Hourly energy mix</h3>
+                    </div>
+                    <div class="route-legend" aria-label="Energy source legend">
+                        <span><i class="route-dot grid"></i>Grid</span>
+                        <span><i class="route-dot battery"></i>Battery</span>
+                        <span><i class="route-dot solar"></i>Solar</span>
+                    </div>
+                </div>
+                <p class="controller-chart-help">Hover any hour to compare source contribution in kW. The filled areas make the changing mix easier to see at a glance.</p>
+                <div class="controller-chart-canvas">
+                    <canvas id="energyRouteChart" aria-label="Hourly grid, battery, and solar energy routing chart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOTTOM ROW -->
+        <section class="bottom-row" aria-label="Details">
+            <!-- Battery SoC -->
+            <div class="glass-panel" id="batteryPanel">
+                <div class="battery-panel-header">
+                    <h2 class="battery-title">Battery State of Charge (SoC)</h2>
+                    <span class="battery-badge good" id="batteryBadge">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="6" width="16" height="12" rx="2"/><path d="M20 10h2v4h-2z"/><rect x="5" y="9" width="6" height="6" rx="1" opacity="0.5"/></svg>
+                        <span id="batteryPct">—%</span>
+                    </span>
+                </div>
+                <div class="battery-chart-wrap">
+                    <canvas id="socChart" aria-label="Battery state of charge chart"></canvas>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="glass-panel system-status-card" id="systemStatusCard">
+                <h2 style="font-size: 1.05rem; font-weight: 650; margin-bottom: var(--space-md);">System Status</h2>
+                <div class="status-main">
+                    <div class="status-indicator normal" id="statusIndicator">
+                        <div class="ring-outer"></div>
+                        <div class="ring-inner"></div>
+                        <div class="core"></div>
+                    </div>
+                    <div class="status-info">
+                        <div class="status-heading normal" id="statusHeading">Operating Normally</div>
+                        <div class="status-desc" id="statusDesc">All parameters within safe limits. No overload expected.</div>
+                    </div>
+                    <svg class="status-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+                <div class="status-wave" id="statusWave">
+                    <svg viewBox="0 0 400 30" preserveAspectRatio="none">
+                        <path d="M0,15 C40,5 80,25 120,15 C160,5 200,25 240,15 C280,5 320,25 360,15 C380,10 400,15 400,15" fill="none" stroke="rgba(57,245,208,0.25)" stroke-width="1.5"/>
+                        <path d="M0,18 C50,8 100,28 150,18 C200,8 250,28 300,18 C350,8 400,18 400,18" fill="none" stroke="rgba(57,245,208,0.12)" stroke-width="1"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="glass-panel" id="quickActionsPanel">
+                <h2 class="quick-actions-title">Quick Actions</h2>
+                <div class="action-row" id="actionUpload" tabindex="0" role="button">
+                    <div class="action-icon teal">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <span class="action-label">Upload New Data</span>
+                    <svg class="action-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+                <div class="action-row" id="actionSimulation" tabindex="0" role="button">
+                    <div class="action-icon violet">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    </div>
+                    <span class="action-label">Run Simulation</span>
+                    <svg class="action-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+                <div class="action-row" id="actionHistory" tabindex="0" role="button">
+                    <div class="action-icon blue">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                    </div>
+                    <span class="action-label">View History</span>
+                    <svg class="action-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- INPUT SECTION -->
+        <section class="glass-panel input-section" id="inputSection" aria-labelledby="inputTitle">
+            <div class="input-header">
+                <div>
+                    <h2 class="input-title" id="inputTitle">Input Data</h2>
+                    <p class="input-subtitle">Provide weather data to generate a forecast</p>
+                </div>
+            </div>
+            <div class="tabs" id="inputTabs" role="tablist" aria-label="Input methods">
+                <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-csv" id="tab-csv" data-tab="csv">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <span>Upload CSV</span>
+                </button>
+                <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-manual" id="tab-manual" data-tab="manual">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                    <span>Manual Entry</span>
+                </button>
+                <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-typical" id="tab-typical" data-tab="typical">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    <span>Typical Day</span>
+                </button>
+                <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-demo" id="tab-demo" data-tab="demo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                    <span>Load Demo</span>
+                </button>
+            </div>
+
+            <div id="panel-csv" class="tab-panel" role="tabpanel" aria-labelledby="tab-csv">
+                <div class="drop-zone" id="dropZone">
+                    <input type="file" id="csvFile" accept=".csv" hidden>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <p class="drop-text">Drag & drop CSV file here, or click to browse</p>
+                    <p class="drop-hint">Required columns: timestamp, ambient_temp_c, humidity_pct, solar_irradiance_wm2</p>
+                </div>
+            </div>
+
+            <div id="panel-manual" class="tab-panel" role="tabpanel" aria-labelledby="tab-manual" hidden>
+                <div class="manual-grid-wrapper">
+                    <div class="manual-grid-header">
+                        <span>Time</span>
+                        <span>Temp (°C)</span>
+                        <span>Humidity (%)</span>
+                        <span>Solar (W/m²)</span>
+                    </div>
+                    <div class="manual-grid" id="manualGrid" role="grid" aria-label="Hourly weather inputs"></div>
+                </div>
+                <div class="manual-actions">
+                    <button class="btn btn-primary" id="btnManualForecast">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        <span>Generate Forecast</span>
+                    </button>
+                    <button class="btn btn-ghost" id="btnFillTypical">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        <span>Fill Typical</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="panel-typical" class="tab-panel" role="tabpanel" aria-labelledby="tab-typical" hidden>
+                <div class="typical-day-form">
+                    <label for="typicalDate" class="form-label">Select Date</label>
+                    <div class="form-control">
+                        <input type="date" id="typicalDate" class="form-input">
+                        <button class="btn btn-primary" id="btnTypicalDay">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                            <span>Generate Typical Day</span>
+                        </button>
+                    </div>
+                    <p class="form-hint">Generates a 24-hour forecast using average hourly weather profiles from training data.</p>
+                </div>
+            </div>
+
+            <div id="panel-demo" class="tab-panel" role="tabpanel" aria-labelledby="tab-demo" hidden>
+                <div class="demo-panel">
+                    <div class="demo-preview">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="56" height="56"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                        <div>
+                            <h3>Demo Day — January 15, 2024</h3>
+                            <p>Pre-configured dataset showcasing a full 24-hour cycle with varying solar conditions and demand patterns.</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-lg" id="btnLoadDemo">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <span id="loadDemoText">Load Demo Forecast</span>
+                    </button>
+                    <div class="demo-result" id="demoResult" role="status" aria-live="polite" hidden>
+                        <div class="demo-result-icon" aria-hidden="true">✓</div>
+                        <div>
+                            <strong id="demoResultTitle">Demo forecast ready</strong>
+                            <p id="demoResultText"></p>
+                        </div>
+                        <button class="demo-result-link" id="demoViewResults" type="button">View results ↓</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DATA TABLE -->
+        <section class="glass-panel table-section" id="tableSection" aria-labelledby="tableTitle">
+            <div class="section-context">
+                <span class="section-eyebrow">EVIDENCE VIEW</span>
+                <p><strong>What is shown:</strong> one row per forecast hour, including weather inputs, predicted demand, controller mode, and battery reserve. <strong>Why:</strong> this is the audit trail behind every chart and alert.</p>
+            </div>
+            <div class="table-header">
+                <h2 class="table-title" id="tableTitle">Hourly Forecast Details</h2>
+                <div class="table-actions">
+                    <div class="table-search">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="search" id="tableSearch" placeholder="Filter hours…" aria-label="Filter table rows">
+                    </div>
+                    <button class="btn btn-ghost" id="downloadCsv" aria-label="Download forecast as CSV">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        <span>Export CSV</span>
+                    </button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table" id="forecastTable" role="grid" aria-label="Hourly forecast data">
+                    <thead>
+                        <tr>
+                            <th scope="col">Hour</th>
+                            <th scope="col">Temp (°C)</th>
+                            <th scope="col">Humidity (%)</th>
+                            <th scope="col">Solar (W/m²)</th>
+                            <th scope="col">Predicted (kW)</th>
+                            <th scope="col">Mode</th>
+                            <th scope="col">Reason</th>
+                            <th scope="col">Overload</th>
+                            <th scope="col">SoC (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="empty-state" id="tableEmpty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                    <p>No forecast data loaded</p>
+                    <span>Use the input panel above to generate a forecast</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SIGNALS & LOGS -->
+        <section class="dual-row" aria-label="Signals and Logs">
+            <div class="glass-panel" id="signalsPanel">
+                <div class="panel-title">
+                    <span>Control Signals</span>
+                    <span class="signal-count" id="signalCount">0 signals</span>
+                </div>
+                <div class="signals-list" id="signalsList" role="list"></div>
+            </div>
+            <div class="glass-panel" id="logsPanel">
+                <div class="panel-title">
+                    <span>System Logs</span>
+                    <button class="icon-btn" id="clearLogs" aria-label="Clear logs" title="Clear logs">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                </div>
+                <div class="logs-list" id="logsList" role="log"></div>
+            </div>
+        </section>
+
+        <!-- QUALITY -->
+        <section class="glass-panel" id="qualitySection" aria-labelledby="qualityTitle" style="margin-bottom: var(--space-xl);">
+            <div class="panel-title">
+                <span id="qualityTitle">Data Quality Report</span>
+                <span class="quality-badge" id="qualityBadge" hidden></span>
+            </div>
+            <div class="quality-grid" id="qualityGrid"></div>
+            <div class="quality-warnings" id="qualityWarnings" hidden></div>
+        </section>
+
+        <!-- ABOUT -->
+        <section class="glass-panel about-section" id="aboutSection" aria-labelledby="aboutTitle">
+            <span class="section-eyebrow">SYSTEM ARCHITECTURE</span>
+            <h2 id="aboutTitle">From telemetry to a safer microgrid</h2>
+            <p class="about-lead">GridSense is an end-to-end demand forecasting and power-routing application for a weather-aware microgrid.</p>
+            <div class="architecture-flow" aria-label="GridSense processing flow">
+                <article><span>01</span><strong>Ingest</strong><p>CSV or manual weather telemetry is validated and normalized into hourly feature rows.</p></article>
+                <i aria-hidden="true">→</i>
+                <article><span>02</span><strong>Forecast</strong><p>QuickML or the local fallback predicts electrical demand for every forecast hour.</p></article>
+                <i aria-hidden="true">→</i>
+                <article><span>03</span><strong>Decide</strong><p>Controller rules select Main Grid or Renewable Storage and raise critical alerts.</p></article>
+                <i aria-hidden="true">→</i>
+                <article><span>04</span><strong>Explain</strong><p>Charts, route contributions, signals, logs, and the evidence table make each result auditable.</p></article>
+            </div>
+            <div class="about-note"><strong>Why this matters:</strong> prediction alone does not protect a grid. GridSense connects the forecast to an explicit dispatch decision, battery reserve simulation, and an operator-readable explanation.</div>
+        </section>
+
+    </main>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay" hidden role="status" aria-live="polite">
+    <div class="loading-spinner" aria-hidden="true"></div>
+    <p class="loading-text" id="loadingText">Processing…</p>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer" aria-live="polite" aria-label="Notifications"></div>
+
+<!-- Demo Result Modal -->
+<div class="demo-modal-backdrop" id="demoModal" hidden>
+    <section class="demo-modal" role="dialog" aria-modal="true" aria-labelledby="demoModalTitle">
+        <button class="demo-modal-close" id="demoModalClose" type="button" aria-label="Close demo result">×</button>
+        <div class="demo-modal-icon" aria-hidden="true">✓</div>
+        <p class="demo-modal-kicker" id="demoModalKicker">ANALYSIS COMPLETE</p>
+        <h2 id="demoModalTitle">Forecast is ready</h2>
+        <p class="demo-modal-description" id="demoModalDescription">Your microgrid scenario has been processed. Here is a quick summary of what the model found.</p>
+        <div class="demo-modal-stats">
+            <div class="demo-modal-stat">
+                <strong id="demoModalHours">—</strong>
+                <span>Hours analyzed</span>
+            </div>
+            <div class="demo-modal-stat">
+                <strong id="demoModalPeak">—</strong>
+                <span>Peak demand</span>
+            </div>
+            <div class="demo-modal-stat">
+                <strong id="demoModalTemperature">—</strong>
+                <span>Avg. temperature</span>
+            </div>
+        </div>
+        <div class="demo-modal-status" id="demoModalStatus"></div>
+        <div class="demo-modal-actions">
+            <button class="btn btn-primary" id="demoModalViewResults" type="button">View detailed results ↓</button>
+            <button class="btn btn-ghost" id="demoModalDismiss" type="button">Close</button>
+        </div>
+    </section>
+</div>
+
+<!-- Mobile Drawer Backdrop -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+
+<!-- Mobile Bottom Navigation Dock -->
+<nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile navigation">
+    <button class="mobile-nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Dashboard</span>
+    </button>
+    <button class="mobile-nav-item" data-page="forecast">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Forecast</span>
+    </button>
+    <button class="mobile-nav-item" data-page="upload">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Upload</span>
+    </button>
+    <button class="mobile-nav-item" data-page="controller">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        <span>Control</span>
+    </button>
+    <button class="mobile-nav-item" data-page="history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>History</span>
+    </button>
+</nav>
+
+<!-- Unique Futuristic Sci-Fi Energy Cursor Elements -->
+<div class="custom-cursor-dot" id="cursorDot" aria-hidden="true"></div>
+<div class="custom-cursor-ring" id="cursorRing" aria-hidden="true"></div>
+
+<script src="vendor/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

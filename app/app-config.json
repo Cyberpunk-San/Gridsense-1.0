@@ -1,0 +1,19 @@
+{
+  "name": "hacksphere-microgrid",
+  "type": "appsail",
+  "runtime": "python3.10",
+  "source_directory": ".",
+  "build_command": "python -m pip install --no-cache-dir -r ./requirements.txt --target ./",
+  "start_command": "python app.py",
+  "env_variables": {
+    "ZOHO_ACCOUNTS_URL": "https://accounts.zoho.in",
+    "ZOHO_CLIENT_ID": "",
+    "ZOHO_CLIENT_SECRET": "",
+    "ZOHO_REFRESH_TOKEN": "",
+    "QUICKML_ENDPOINT_URL": "",
+    "QUICKML_ENDPOINT_KEY": "",
+    "CATALYST_ORG_ID": "",
+    "CATALYST_ENV": "Development",
+    "PREDICT_PROXY_KEY": ""
+  }
+}

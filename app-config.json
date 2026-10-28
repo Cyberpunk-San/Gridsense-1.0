@@ -1,5 +1,5 @@
 {
-  "command": "python app.py",
+  "command": "python app/app.py",
   "build_path": "./",
   "stack": "python_3_10",
   "env_variables": {},

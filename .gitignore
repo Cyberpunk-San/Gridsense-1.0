@@ -1,11 +1,55 @@
+﻿# Python caches and environments
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 .venv/
 venv/
+env/
 .env
+
+# Test, build, and deployment output
 .pytest_cache/
+.coverage
+htmlcov/
 dist/
 build/
 *.egg-info/
+.catalyst/
+catalyst-debug.log
+
+# Installed Python packages accidentally created in the source tree
+*.dist-info/
+*.data/
 site-packages/
+bin/
+lib/
+include/
+
+# Common installed package directories (dependencies belong in requirements.txt)
+blinker/
+certifi/
+charset_normalizer/
+click/
+cloudpickle/
+dateutil/
+flask/
+gunicorn/
+idna/
+itsdangerous/
+jinja2/
+joblib/
+markupsafe/
+narwhals/
+numpy/
+packaging/
+pandas/
+pytz/
+requests/
+scipy/
+sklearn/
+threadpoolctl/
+typing_extensions/
+tzdata/
+urllib3/
+werkzeug/
+zcatalyst_sdk/
